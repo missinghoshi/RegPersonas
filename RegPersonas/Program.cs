@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RegistroPersonas
 {
@@ -7,87 +8,81 @@ namespace RegistroPersonas
     {
         static void Main(string[] args)
         {
-            int cantidadPersonas = 0;
+            int cantidad = LeerEntero("Ingrese el número de personas a registrar: ", minimo: 1);
+            var personas = RegistrarPersonas(cantidad);
+            MostrarResultados(personas);
+            Console.ReadKey();
+        }
 
+
+        static int LeerEntero(string mensaje, int minimo = 0)
+        {
             while (true)
             {
-                Console.Write("Ingrese el número de personas a registrar: ");
-                if (int.TryParse(Console.ReadLine() ?? "", out cantidadPersonas) && cantidadPersonas >= 1)
-                    break;
+                Console.Write(mensaje);
+                if (int.TryParse(Console.ReadLine() ?? "", out int valor) && valor >= minimo)
+                    return valor;
 
-                Console.WriteLine("Error: Cantidad inválida, por favor intente nuevamente.");
+                Console.WriteLine("Error: valor inválido, por favor intente nuevamente.");
             }
+        }
 
-            List<(string Nombre, int Edad)> listaPersonas = new List<(string Nombre, int Edad)>();
+        static string LeerTexto(string mensaje)
+        {
+            while (true)
+            {
+                Console.Write(mensaje);
+                string entrada = Console.ReadLine() ?? "";
+                if (!string.IsNullOrWhiteSpace(entrada))
+                    return entrada;
 
-            for (int i = 0; i < cantidadPersonas; i++)
+                Console.WriteLine("Error: el campo no puede estar vacío, por favor intente nuevamente.");
+            }
+        }
+
+
+        static List<(string Nombre, int Edad)> RegistrarPersonas(int cantidad)
+        {
+            var lista = new List<(string Nombre, int Edad)>();
+
+            for (int i = 0; i < cantidad; i++)
             {
                 Console.WriteLine($"\nPersona {i + 1}");
-
-                string nombre;
-                while (true)
-                {
-                    Console.Write("Nombre: ");
-                    nombre = Console.ReadLine() ?? "";
-                    if (!string.IsNullOrWhiteSpace(nombre))
-                        break;
-
-                    Console.WriteLine("Error: El nombre no puede estar vacío, por favor intente nuevamente.");
-                }
-
-                int edad;
-                while (true)
-                {
-                    Console.Write("Edad: ");
-                    if (int.TryParse(Console.ReadLine() ?? "", out edad) && edad >= 0)
-                        break;
-
-                    Console.WriteLine("Error: Edad inválida, por favor intente nuevamente.");
-                }
-
-                listaPersonas.Add((nombre, edad));
+                string nombre = LeerTexto("Nombre: ");
+                int edad = LeerEntero("Edad: ");
+                lista.Add((nombre, edad));
             }
 
-            if (cantidadPersonas == 1)
+            return lista;
+        }
+
+
+        static void MostrarResultados(List<(string Nombre, int Edad)> personas)
+        {
+            if (personas.Count == 1)
             {
-                var persona = listaPersonas[0];
-                Console.WriteLine("\nResultado:");
-                string condicion = persona.Edad >= 18 ? "mayor" : "menor";
-                Console.WriteLine($"{persona.Nombre} tiene {persona.Edad} años y es {condicion} de edad.");
-            }
-            else
-            {
-                Console.WriteLine("\nLista general:");
-                foreach (var persona in listaPersonas)
-                    Console.WriteLine($"{persona.Nombre} - {persona.Edad} años");
-
-                List<(string Nombre, int Edad)> mayoresDeEdad = new List<(string Nombre, int Edad)>();
-                List<(string Nombre, int Edad)> menoresDeEdad = new List<(string Nombre, int Edad)>();
-
-                foreach (var persona in listaPersonas)
-                {
-                    if (persona.Edad >= 18)
-                        mayoresDeEdad.Add(persona);
-                    else
-                        menoresDeEdad.Add(persona);
-                }
-
-                if (mayoresDeEdad.Count > 0)
-                {
-                    Console.WriteLine("\nMayores de edad:");
-                    foreach (var persona in mayoresDeEdad)
-                        Console.WriteLine($"{persona.Nombre} - {persona.Edad} años");
-                }
-
-                if (menoresDeEdad.Count > 0)
-                {
-                    Console.WriteLine("\nMenores de edad:");
-                    foreach (var persona in menoresDeEdad)
-                        Console.WriteLine($"{persona.Nombre} - {persona.Edad} años");
-                }
+                var p = personas[0];
+                string condicion = p.Edad >= 18 ? "mayor" : "menor";
+                Console.WriteLine($"\nResultado:\n{p.Nombre} tiene {p.Edad} años y es {condicion} de edad.");
+                return;
             }
 
-            Console.ReadKey();
+            Console.WriteLine("\nLista general:");
+            foreach (var p in personas)
+                Console.WriteLine($"{p.Nombre} - {p.Edad} años");
+
+            MostrarGrupo("Mayores de edad:", personas.Where(p => p.Edad >= 18));
+            MostrarGrupo("Menores de edad:", personas.Where(p => p.Edad < 18));
+        }
+
+        static void MostrarGrupo(string titulo, IEnumerable<(string Nombre, int Edad)> grupo)
+        {
+            var lista = grupo.ToList();
+            if (lista.Count == 0) return;
+
+            Console.WriteLine($"\n{titulo}");
+            foreach (var p in lista)
+                Console.WriteLine($"{p.Nombre} - {p.Edad} años");
         }
     }
 }
